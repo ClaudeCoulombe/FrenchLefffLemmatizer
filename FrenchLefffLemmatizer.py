@@ -19,11 +19,11 @@ class FrenchLefffLemmatizer(object):
     
     """
 
-    def __init__(self, lefff_file_path, lefff_additional_file_path):
+    def __init__(self, lefff_file_path=None, lefff_additional_file_path=None):
         if lefff_file_path == None:
-            lefff_file_path = "/Users/claudecoulombe/git/semantron/notebooks/lefff-3.4.mlex/lefff-3.4.mlex"
+            lefff_file_path = "<path to>/lefff-3.4.mlex"
         if lefff_additional_file_path == None:
-            lefff_additional_file_path = "/Users/claudecoulombe/git/semantron/notebooks/lefff-3.4.mlex/lefff-3.4-addition.mlex"
+            lefff_additional_file_path = "<path to>/lefff-3.4.mlex/lefff-3.4-addition.mlex"
         self.LEFFF_FILE_STORAGE = lefff_file_path
         self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE = lefff_additional_file_path
         self.INFLECTED_FORM = 0
