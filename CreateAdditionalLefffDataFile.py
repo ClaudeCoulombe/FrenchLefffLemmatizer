@@ -1,7 +1,7 @@
 # Creation of an Additional Lefff Data File firstly in memory then saved on disk
 # usage
-# INPUT_FILE_PATH = "/Users/claudecoulombe/git/semantron/notebooks/lefff-3.4.mlex/lefff-3.4.mlex"
-# OUTPUT_FILE_PATH = "/Users/claudecoulombe/git/semantron/notebooks/lefff-3.4.mlex/lefff-3.4-addition.mlex"
+# INPUT_FILE_PATH = ""<path_to_LEFFF_file>/lefff-3.4.mlex""
+# OUTPUT_FILE_PATH = "<path_to_additional_LEFFF_file>/lefff-3.4-addition.mlex"
 # createAdditionalLefffDatafile(INPUT_FILE_PATH,OUTPUT_FILE_PATH)
 
 import re

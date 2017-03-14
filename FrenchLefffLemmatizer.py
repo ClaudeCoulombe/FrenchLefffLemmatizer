@@ -13,7 +13,8 @@ class FrenchLefffLemmatizer(object):
     
     Could be used with the same API than the WordNetLemmatizer included in the NLTK library
    
-    Input: (word, pos_tag) where the pos_tag is among the set (a, r, n, v)
+    Input: (word, pos_tag) where the pos_tag is among the set (a, r, n, v) for WordNet API
+           or pos_tag in the set ('adj','adv','nc','np','ver','auxAvoir','auxEtre') for LEFFF API
            To get all the original LEFFF pos tags use lemmatize(word,pos='all')
     Output: returns the lemma found in LEFFF or the input word unchanged if it cannot be found in LEFFF.
     
@@ -21,9 +22,9 @@ class FrenchLefffLemmatizer(object):
 
     def __init__(self, lefff_file_path=None, lefff_additional_file_path=None):
         if lefff_file_path == None:
-            lefff_file_path = "<path to>/lefff-3.4.mlex"
+            lefff_file_path = "<path_to_LEFFF_file>/lefff-3.4.mlex"
         if lefff_additional_file_path == None:
-            lefff_additional_file_path = "<path to>/lefff-3.4-addition.mlex"
+            lefff_additional_file_path = "<path_to_additional_LEFFF_file>/lefff-3.4-addition.mlex"
         self.LEFFF_FILE_STORAGE = lefff_file_path
         self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE = lefff_additional_file_path
         self.INFLECTED_FORM = 0
@@ -31,12 +32,15 @@ class FrenchLefffLemmatizer(object):
         self.LEMMA = 2
         self.MISC = 3
         self.OLD_LEMMA = 4 
-        self.WORDNET_LEFFF_DIC = {'adj':'a','adv':'r','nc':'n','np':'n','v':'v','auxAvoir':'v','auxEtre':'v'}
+        self.TRACE = False
+        self.WORDNET_LEFFF_DIC = {'a':'adj','r':'adv','n':'nc','v':'ver'}
         set_POS_triplets = set()
         with open(self.LEFFF_FILE_STORAGE, encoding='utf-8') as lefff_file:
             for a_line in lefff_file:
                 a_line = a_line[:-1]
                 line_parts = a_line.split('\t')
+                if line_parts[self.POS] == 'v':
+                    line_parts[self.POS] = 'ver'
                 POS_triplet = (line_parts[self.INFLECTED_FORM],line_parts[self.POS],line_parts[self.LEMMA])
                 if (POS_triplet not in set_POS_triplets):
                     set_POS_triplets.add(POS_triplet)
@@ -66,12 +70,15 @@ class FrenchLefffLemmatizer(object):
         # In order to improve the performance we create
         # a dictionary to store the triplets tuples
         lefff_triplets_dict = dict()
+        # a_triplet => a_triplet[self.INFLECTED_FORM], a_triplet[self.POS], a_triplet[self.LEMMA]
         for a_triplet in set_POS_triplets:
+            if self.TRACE:
+                print(a_triplet)
             if not a_triplet[self.INFLECTED_FORM] in lefff_triplets_dict:
-                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]] = set()
-                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]].add(a_triplet)
+                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]] = dict()
+                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]][a_triplet[self.POS]] = a_triplet[self.LEMMA] 
             else:
-                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]].add(a_triplet)    
+                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]][a_triplet[self.POS]] = a_triplet[self.LEMMA]   
         # release the temporary set_POS_triples data structure
         # TODO: in order to save memory, combine set_POS_triples and lefff_triplets_dict 
         del set_POS_triplets
@@ -79,6 +86,9 @@ class FrenchLefffLemmatizer(object):
         
     def isWordnetAPI(self,pos):
         return pos in ['a','n','r','v']
+
+    def isLEFFFAPI(self,pos):
+        return pos in ['adj','adv','nc','np','ver','auxAvoir','auxEtre']
 
     def drawRandomSample(self,sample_size):
         leff_list = list(self.LEFFF_TABLE)
@@ -97,24 +107,32 @@ class FrenchLefffLemmatizer(object):
         if ( not (pos == "np") ):
             word = word.lower()
         if word in self.LEFFF_TABLE.keys():
-            triplets_list = self.LEFFF_TABLE[word]
+            triplets_dict = self.LEFFF_TABLE[word]
+            if self.TRACE:
+                print("TRACE: ",triplets_dict)
         else:
-            triplets_list = []
+            triplets_dict = []
         POS_couples_list = []
         if self.isWordnetAPI(pos):
-            for triplet in triplets_list:
-                if triplet[self.POS] in self.WORDNET_LEFFF_DIC.keys():
-                    translated_POS_tag = self.WORDNET_LEFFF_DIC[triplet[self.POS]]
-                    if translated_POS_tag == pos:
-                        return triplet[self.LEMMA]
+            if not triplets_dict == []:
+                    translated_pos_tag = self.WORDNET_LEFFF_DIC[pos]
+                    if translated_pos_tag in triplets_dict.keys():
+                        if self.TRACE:
+                            print("TRACE: ",pos, translated_pos_tag)
+                        return triplets_dict[translated_pos_tag]
         else:
-            for triplet in triplets_list:
-                POS_couple = (triplet[self.LEMMA],triplet[self.POS])
-                if (POS_couple not in POS_couples_list):
-                    POS_couples_list.append(POS_couple)
+            if not triplets_dict == []:
+                if pos in triplets_dict.keys():
+                    return [(triplets_dict[pos],pos)]
+                elif pos == 'all':
+                    for key in triplets_dict.keys():
+                        POS_couple = (triplets_dict[key],key)
+                        POS_couples_list.append(POS_couple)
+                    if raw_word[0].isupper():
+                        POS_couples_list.append((raw_word,'np'))
         if (POS_couples_list == []):
             if self.isWordnetAPI(pos):
                 return raw_word
             elif raw_word[0].isupper():
-                POS_couples_list = (raw_word,'np')
+                return [(raw_word,'np')]
         return POS_couples_list
