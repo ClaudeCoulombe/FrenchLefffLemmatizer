@@ -232,5 +232,4 @@ def createAdditionalLefffDatafile(INPUT_FILE_PATH,OUTPUT_FILE_PATH):
     saveLefffAdditionDatafile(new_additional_dict_lefff,OUTPUT_FILE_PATH)
     
 
-
 print("Create LefffAdditionDatafile code ready!")
