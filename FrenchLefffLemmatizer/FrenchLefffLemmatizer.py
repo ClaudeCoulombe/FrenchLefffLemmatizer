@@ -23,7 +23,6 @@ class FrenchLefffLemmatizer(object):
 
     def __init__(self, lefff_file_path=None, lefff_additional_file_path=None):
         data_file_path = os.path.dirname(os.path.realpath(__file__))
-        print("data_file_path",data_file_path)
         if lefff_file_path == None:
             lefff_file_path = data_file_path + "/lefff-3.4.mlex"
         if lefff_additional_file_path == None:
