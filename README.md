@@ -39,40 +39,27 @@ Installation:
 1) Download the .zip file and uncompress it
 2) Rename the file FrenchLemmatizer-master to FrenchLemmatizer
 3) Using the console,
-> cd FrenchLemmatizer
+`>` cd FrenchLemmatizer
 4) You should install pip (https://packaging.python.org/tutorials/installing-packages/)
-> pip install .
+`>` pip install .
 
 -----
 
 Small examples:
 
->> from FrenchLefffLemmatizer.FrenchLefffLemmatizer import FrenchLefffLemmatizer
-
->> french_lemmatizer = FrenchLefffLemmatizer()
-
->> print(french_lemmatizer.lemmatize('avions'))
-
+from FrenchLefffLemmatizer.FrenchLefffLemmatizer import FrenchLefffLemmatizer
+french_lemmatizer = FrenchLefffLemmatizer()
+print(french_lemmatizer.lemmatize('avions'))
 avion
-
->> french_lemmatizer.lemmatize('avions','n')
-
+french_lemmatizer.lemmatize('avions','n')
 avion
-
->> french_lemmatizer.lemmatize('avions','v')
-
+french_lemmatizer.lemmatize('avions','v')
 avoir
-
->> french_lemmatizer.lemmatize('avions','all')
-
+french_lemmatizer.lemmatize('avions','all')
 [('avion', 'nc'), ('avoir', 'auxAvoir'), ('avoir', 'ver')]
-
->> french_lemmatizer.lemmatize('vous','all')
-
+french_lemmatizer.lemmatize('vous','all')
 [('se', 'clr'), ('le', 'cla'), ('lui', 'pro'), ('il', 'cln'), ('lui', 'cld')]
-
->> french_lemmatizer.lemmatize('la','all')
-
+french_lemmatizer.lemmatize('la','all')
 [('la', 'nc'), ('le', 'det'), ('le', 'cla')]
 
 
