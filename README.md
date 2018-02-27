@@ -40,7 +40,7 @@ Installation:
 2) Rename the file FrenchLemmatizer-master to FrenchLemmatizer
 3) Using the console,
 > cd FrenchLemmatizer
-4) You should install pip (https://pip.pypa.io/en/stable/installing/)
+4) You should install pip (https://packaging.python.org/tutorials/installing-packages/)
 > pip install .
 
 -----
