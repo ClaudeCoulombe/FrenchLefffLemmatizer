@@ -37,8 +37,11 @@ limitations under the License.
 Installation:
 
 1) Download the .zip file and uncompress it
-2) cd FrenchLemmatizer
-3) pip install .
+2) Rename the file FrenchLemmatizer-master to FrenchLemmatizer
+3) Using the console,
+> cd FrenchLemmatizer
+4) You should install pip (https://pip.pypa.io/en/stable/installing/)
+> pip install .
 
 -----
 
