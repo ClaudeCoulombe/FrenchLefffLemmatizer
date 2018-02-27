@@ -19,7 +19,7 @@ Tagset format FRMG - from the ALPAGE project since 2004<br/>
 
 <strong>License</strong>
 
-Copyright (C) 2017 Claude Coulombe
+Copyright (C) 2017-2018 Claude COULOMBE
 
 Licensed under the Apache License, Version 2.0 (the 'License');
 you may not use this file except in compliance with the License.
@@ -32,3 +32,31 @@ distributed under the License is distributed on an 'AS IS' BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+-----
+Installation:
+
+1) Download the .zip file and uncompress it
+2) cd FrenchLemmatizer
+3) pip install .
+
+-----
+
+Small examples:
+
+>> from FrenchLefffLemmatizer.FrenchLefffLemmatizer import FrenchLefffLemmatizer
+>> french_lemmatizer = FrenchLefffLemmatizer()
+>> print(french_lemmatizer.lemmatize('avions'))
+avion
+>> french_lemmatizer.lemmatize('avions','n')
+avion
+>> french_lemmatizer.lemmatize('avions','v')
+avoir
+>> french_lemmatizer.lemmatize('avions','all')
+[('avion', 'nc'), ('avoir', 'auxAvoir'), ('avoir', 'ver')]
+>> french_lemmatizer.lemmatize('vous','all')
+[('se', 'clr'), ('le', 'cla'), ('lui', 'pro'), ('il', 'cln'), ('lui', 'cld')]
+>> french_lemmatizer.lemmatize('la','all')
+[('la', 'nc'), ('le', 'det'), ('le', 'cla')]
+
+
