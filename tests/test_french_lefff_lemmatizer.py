@@ -14,29 +14,27 @@ class TestFrenchLefffLemmatizer(unittest.TestCase):
         if os.path.exists(self.path_file):
             os.remove(self.path_file)
 
-    def test_french_lefff_lemmatizer_when_lefff_file_is_empty_expect_empty_table(self):
+    def test_french_lefff_lemmatizer_when_lefff_files_are_empty_expect_empty_table(self):
         lemmatizer = FrenchLefffLemmatizer(lefff_file_path=self.path_file, lefff_additional_file_path=self.path_file)
-        self.assertEqual(0, len(lemmatizer.LEFFF_TABLE))
+        self.assertEqual(2,  # Corresponds to the triplets to add
+                         len(lemmatizer.LEFFF_TABLE))
 
     def test_french_lefff_lemmatizer_when_load_only_lefff_additional(self):
         lemmatizer = FrenchLefffLemmatizer(lefff_file_path=self.path_file)
-        self.assertEqual(56841, len(lemmatizer.LEFFF_TABLE))
+        self.assertEqual(56843, len(lemmatizer.LEFFF_TABLE))
 
     def test_french_lefff_lemmatizer_when_lefff_additional_file_path_is_not_none_and_empty_expect_only_lefff_file(self):
         lemmatizer = FrenchLefffLemmatizer(lefff_additional_file_path=self.path_file)
-        self.assertEqual(455785, len(lemmatizer.LEFFF_TABLE))
-
-    def test_french_lefff_lemmatizer_when_lefff_files_paths_are_not_none_and_empty(self):
-        lemmatizer = FrenchLefffLemmatizer(lefff_file_path=self.path_file, lefff_additional_file_path=self.path_file)
-        self.assertEqual(0, len(lemmatizer.LEFFF_TABLE))
+        self.assertEqual(455787, len(lemmatizer.LEFFF_TABLE))
 
     def test_french_lefff_lemmatizer_lexicon_data_length(self):
         lemmatizer = FrenchLefffLemmatizer()
-        self.assertEqual(455787, len(lemmatizer.LEFFF_TABLE))
+        self.assertEqual(455789, len(lemmatizer.LEFFF_TABLE))
 
 
 class TestIsWordnetApi(unittest.TestCase):
     def setUp(self):
+        # To make the test faster, we load an empty file.
         self.lemmatizer = FrenchLefffLemmatizer(open('file.txt', 'w').close())
 
     def tearDown(self):
@@ -101,9 +99,8 @@ class TestUpdateLefffLexicon(unittest.TestCase):
 
     def tearDown(self):
         if os.path.exists(self.path_file):
-            if os.path.exists(self.path_file):
-                os.remove(self.path_file)
+            os.remove(self.path_file)
 
     def test_update_lefff_lexicon_when_no_old_lemma_expect_exception(self):
         with self.assertRaises(IndexError):
-            FrenchLefffLemmatizer(lefff_additional_file_path=self.path_file).update_lefff_lexicon(dict())
+            FrenchLefffLemmatizer(lefff_additional_file_path=self.path_file).update_lefff_lexicon()
