@@ -9,6 +9,5 @@ setup(name='FrenchLefffLemmatizer',
       license='Apache 2',
       packages=['french_lefff_lemmatizer'],
       data_files=[('data', ['data/*.mlex'])],
-      include_package_data=True,
       zip_safe=False)
 
