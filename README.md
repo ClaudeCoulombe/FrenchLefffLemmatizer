@@ -39,12 +39,8 @@ Warning: Run under Python 3.X but could run with small modifs with Python 2.7X
 -----
 Installation:
 
-1) Download the .zip file and uncompress it
-2) Rename the file FrenchLemmatizer-master to FrenchLemmatizer
-3) Using the console:<br/>
-`> cd FrenchLemmatizer`<br/>
-4) You should install pip (https://packaging.python.org/tutorials/installing-packages/)<br/>
-`> pip install . `
+1) You should install pip (https://packaging.python.org/tutorials/installing-packages/)<br/>
+`> pip install git+https://github.com/ClaudeCoulombe/FrenchLefffLemmatizer.git`
 
 -----
 
