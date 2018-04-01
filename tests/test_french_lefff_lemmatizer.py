@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
+from french_lefff_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
 
 
 class TestFrenchLefffLemmatizer(unittest.TestCase):
