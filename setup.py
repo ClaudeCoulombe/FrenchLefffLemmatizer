@@ -8,6 +8,8 @@ setup(name='FrenchLefffLemmatizer',
       author_email='claude.coulombe@gmail.com',
       license='Apache 2',
       packages=['french_lefff_lemmatizer'],
-      data_files=[('data', ['data/lefff-3.4.mlex', 'data/lefff-3.4-addition.mlex'])],
+      package_dir={'french_lefff_lemmatizer': 'lemmatizer'},
+      package_data={'french_lefff_lemmatizer': ['data/*.mlex']},
+      include_package_data=True,
       zip_safe=False)
 

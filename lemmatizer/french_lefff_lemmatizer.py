@@ -55,9 +55,9 @@ class FrenchLefffLemmatizer(object):
         # Build paths inside the project like this: os.path.join(base_dir, ...)
         base_dir = os.path.dirname(os.path.dirname(__file__))
         if lefff_file_path is None:
-            lefff_file_path = os.path.join(base_dir, "data", "lefff-3.4.mlex")
+            lefff_file_path = os.path.join(base_dir, "lemmatizer", "data", "lefff-3.4.mlex")
         if lefff_additional_file_path is None:
-            lefff_additional_file_path = os.path.join(base_dir, "data", "lefff-3.4-addition.mlex")
+            lefff_additional_file_path = os.path.join(base_dir, "lemmatizer", "data", "lefff-3.4-addition.mlex")
 
         self.LEFFF_DATA_FILE = lefff_file_path
         self.LEFFF_ADDITIONAL_DATA_FILE = lefff_additional_file_path
