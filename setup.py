@@ -7,8 +7,9 @@ setup(name='FrenchLefffLemmatizer',
       author='Claude Coulombe',
       author_email='claude.coulombe@gmail.com',
       license='Apache 2',
-      packages=['FrenchLefffLemmatizer'],
+      packages=['lemmatizer', 'tests'],
       package_data={
-      'FrenchLefffLemmatizer': ['lefff-3.4.mlex','lefff-3.4-addition.mlex','LICENCE','lefff-tagset-0.1.2.pdf']},
+        'data': ['lefff-3.4.mlex','lefff-3.4-addition.mlex']
+      },
       zip_safe=False)
 
