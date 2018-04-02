@@ -36,14 +36,11 @@ class FrenchLefffLemmatizer(object):
         self.MISC = 3
         self.OLD_LEMMA = 4
         self.TRACE = False
-        self.WORDNET_LEFFF_DIC = {'a': 'adj', 'r': 'adv', 'n': 'nc', 'v': 'ver'}
+        self.WORDNET_LEFFF_DIC = {'a': 'adj', 'r': 'adv', 'n': 'nc', 'v': 'v'}
         set_pos_triplets = set()
         with open(self.LEFFF_FILE_STORAGE, encoding='utf-8') as lefff_file:
             for a_line in lefff_file:
-                a_line = a_line[:-1]
-                line_parts = a_line.split('\t')
-                if line_parts[self.POS] == 'v':
-                    line_parts[self.POS] = 'ver'
+                line_parts = a_line[:-1].split('\t')
                 pos_triplet = (line_parts[self.INFLECTED_FORM], line_parts[self.POS], line_parts[self.LEMMA])
                 if pos_triplet not in set_pos_triplets:
                     set_pos_triplets.add(pos_triplet)
@@ -60,10 +57,7 @@ class FrenchLefffLemmatizer(object):
                         line_add_parts[self.INFLECTED_FORM], line_add_parts[self.POS], line_add_parts[self.OLD_LEMMA]
                     )
                 except IndexError as err:
-                    print("Error! ", err)
-                    print("Length", len(line_add_parts))
-                    print(self.INFLECTED_FORM, self.OLD_LEMMA)
-                    print(line_add_parts[self.INFLECTED_FORM])
+                    raise IndexError("Error! %s\nLength %s\n%s" % (err, len(line_add_parts), line_add_parts))
                 set_pos_triplets_to_remove.add(old_pos_triplet)
                 set_pos_triplets_to_add.add(new_pos_triplet)
         # Errors found in lefff-3.4.mlex
