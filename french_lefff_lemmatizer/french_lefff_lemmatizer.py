@@ -22,63 +22,90 @@ class FrenchLefffLemmatizer(object):
     
     """
 
-    def __init__(self, lefff_file_path=None, lefff_additional_file_path=None):
+    _INFLECTED_FORM = 0
+    _POS = 1
+    _LEMMA = 2
+    _MISC = 3
+    _OLD_LEMMA = 4
+
+    _WORDNET_LEFFF_DIC = {
+        'a': 'adj',
+        'r': 'adv',
+        'n': 'nc',
+        'v': 'v'
+    }
+
+    _LEFFF_POS = ['adj', 'adv', 'nc', 'np', 'v', 'auxAvoir', 'auxEtre']
+
+    _POS_NP = 'np'
+
+    def __init__(self, lefff_file_path=None, lefff_additional_file_path=None, *,
+                 with_additional=None, load_only_pos=None):
+        """
+        :param with_additional: Allows to load LEFFF without the additional file. (Default: True)
+        :type with_additional: bool
+        :param load_only_pos: Allows to load LEFFF with only some pos tags. (Default: all)
+        :type load_only_pos: list
+        """
         data_file_path = os.path.dirname(os.path.realpath(__file__))
         if lefff_file_path is None:
             lefff_file_path = data_file_path + "/data/lefff-3.4.mlex"
         if lefff_additional_file_path is None:
             lefff_additional_file_path = data_file_path + "/data/lefff-3.4-addition.mlex"
+        with_additional = True if with_additional is None else with_additional
+        load_only_pos = self._LEFFF_POS if load_only_pos is None else self.filter_lefff_pos(load_only_pos)
+
         self.LEFFF_FILE_STORAGE = lefff_file_path
         self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE = lefff_additional_file_path
-        self.INFLECTED_FORM = 0
-        self.POS = 1
-        self.LEMMA = 2
-        self.MISC = 3
-        self.OLD_LEMMA = 4
+
         self.TRACE = False
-        self.WORDNET_LEFFF_DIC = {'a': 'adj', 'r': 'adv', 'n': 'nc', 'v': 'v'}
         set_pos_triplets = set()
         with open(self.LEFFF_FILE_STORAGE, encoding='utf-8') as lefff_file:
             for a_line in lefff_file:
                 line_parts = a_line[:-1].split('\t')
-                pos_triplet = (line_parts[self.INFLECTED_FORM], line_parts[self.POS], line_parts[self.LEMMA])
+                pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS], line_parts[self._LEMMA])
                 if pos_triplet not in set_pos_triplets:
                     set_pos_triplets.add(pos_triplet)
         set_pos_triplets_to_remove = set()
         set_pos_triplets_to_add = set()
-        with open(self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE, encoding='utf-8') as lefff_additional_data_file:
-            for line_add in lefff_additional_data_file:
-                line_add_parts = line_add[:-1].split('\t')
-                new_pos_triplet = (
-                    line_add_parts[self.INFLECTED_FORM], line_add_parts[self.POS], line_add_parts[self.LEMMA]
-                )
-                try:
-                    old_pos_triplet = (
-                        line_add_parts[self.INFLECTED_FORM], line_add_parts[self.POS], line_add_parts[self.OLD_LEMMA]
+        if with_additional:
+            with open(self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE, encoding='utf-8') as lefff_additional_data_file:
+                for line_add in lefff_additional_data_file:
+                    line_add_parts = line_add[:-1].split('\t')
+                    new_pos_triplet = (
+                        line_add_parts[self._INFLECTED_FORM],
+                        line_add_parts[self._POS],
+                        line_add_parts[self._LEMMA]
                     )
-                except IndexError as err:
-                    raise IndexError("Error! %s\nLength %s\n%s" % (err, len(line_add_parts), line_add_parts))
-                set_pos_triplets_to_remove.add(old_pos_triplet)
-                set_pos_triplets_to_add.add(new_pos_triplet)
+                    try:
+                        old_pos_triplet = (
+                            line_add_parts[self._INFLECTED_FORM],
+                            line_add_parts[self._POS],
+                            line_add_parts[self._OLD_LEMMA]
+                        )
+                    except IndexError as err:
+                        raise IndexError("Error! %s\nLength %s\n%s" % (err, len(line_add_parts), line_add_parts))
+                    set_pos_triplets_to_remove.add(old_pos_triplet)
+                    set_pos_triplets_to_add.add(new_pos_triplet)
+
         # Errors found in lefff-3.4.mlex
-        set_pos_triplets_to_remove.add(('chiens', 'nc', 'chiens'))
-        set_pos_triplets_to_add.add(('résidente', 'nc', 'résident'))
-        set_pos_triplets_to_add.add(('résidentes', 'nc', 'résident'))
-        set_pos_triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
+        set_pos_triplets_to_remove = self.triplets_to_remove(set_pos_triplets_to_remove)
+        set_pos_triplets_to_add = self.triplets_to_add(set_pos_triplets_to_add)
         set_pos_triplets = (set_pos_triplets - set_pos_triplets_to_remove) | set_pos_triplets_to_add
-        # In order to improve the performance we create
-        # a dictionary to store the triplets tuples
+
+        # In order to improve the performance we create a dictionary to store the triplets tuples
         lefff_triplets_dict = dict()
-        # a_triplet => a_triplet[self.INFLECTED_FORM], a_triplet[self.POS], a_triplet[self.LEMMA]
+        # a_triplet => a_triplet[self._INFLECTED_FORM], a_triplet[self._POS], a_triplet[self._LEMMA]
         for a_triplet in set_pos_triplets:
             if self.TRACE:
                 print(a_triplet)
-            if not a_triplet[self.INFLECTED_FORM] in lefff_triplets_dict:
-                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]] = dict()
-                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]][a_triplet[self.POS]] = a_triplet[self.LEMMA]
-            else:
-                lefff_triplets_dict[a_triplet[self.INFLECTED_FORM]][a_triplet[self.POS]] = a_triplet[self.LEMMA]
-                # release the temporary set_POS_triples data structure
+            if a_triplet[self._POS] in load_only_pos:
+                if not a_triplet[self._INFLECTED_FORM] in lefff_triplets_dict:
+                    lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]] = dict()
+                    lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
+                else:
+                    lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
+                    # release the temporary set_POS_triples data structure
         # TODO: in order to save memory, combine set_POS_triples and lefff_triplets_dict 
         del set_pos_triplets
         self.LEFFF_TABLE = lefff_triplets_dict
@@ -87,9 +114,14 @@ class FrenchLefffLemmatizer(object):
     def is_wordnet_pos(pos):
         return pos in ['a', 'n', 'r', 'v']
 
-    @staticmethod
-    def is_lefff_pos(pos):
-        return pos in ['adj', 'adv', 'nc', 'np', 'ver', 'auxAvoir', 'auxEtre']
+    def is_lefff_pos(self, pos):
+        return pos in self._LEFFF_POS
+
+    def filter_lefff_pos(self, list_pos):
+        """
+        To prevent from giving incorrect POS tags.
+        """
+        return [pos for pos in list_pos if self.is_lefff_pos(pos)] or self._LEFFF_POS
 
     def draw_random_sample(self, sample_size):
         leff_list = list(self.LEFFF_TABLE)
@@ -105,7 +137,7 @@ class FrenchLefffLemmatizer(object):
 
     def lemmatize(self, word, pos="n"):
         raw_word = word
-        if not (pos == "np"):
+        if not (pos == self._POS_NP):
             word = word.lower()
         if word in self.LEFFF_TABLE:
             triplets_dict = self.LEFFF_TABLE[word]
@@ -116,7 +148,7 @@ class FrenchLefffLemmatizer(object):
         pos_couples_list = []
         if self.is_wordnet_pos(pos):
             if triplets_dict:
-                translated_pos_tag = self.WORDNET_LEFFF_DIC[pos]
+                translated_pos_tag = self._WORDNET_LEFFF_DIC[pos]
                 if translated_pos_tag in triplets_dict:
                     if self.TRACE:
                         print("TRACE: ", pos, translated_pos_tag)
@@ -130,10 +162,23 @@ class FrenchLefffLemmatizer(object):
                         pos_couple = (triplets_dict[key], key)
                         pos_couples_list.append(pos_couple)
                     if raw_word[0].isupper():
-                        pos_couples_list.append((raw_word, 'np'))
+                        pos_couples_list.append((raw_word, self._POS_NP))
         if not pos_couples_list:
             if self.is_wordnet_pos(pos):
                 return raw_word
             elif raw_word[0].isupper():
-                return raw_word, 'np'
+                return raw_word, self._POS_NP
         return pos_couples_list
+
+    @staticmethod
+    def triplets_to_add(triplets_to_add):
+        # Errors found in lefff-3.4.mlex :
+        triplets_to_add.add(('résidente', 'nc', 'résident'))
+        triplets_to_add.add(('résidentes', 'nc', 'résident'))
+        return triplets_to_add
+
+    @staticmethod
+    def triplets_to_remove(triplets_to_remove):
+        triplets_to_remove.add(('chiens', 'nc', 'chiens'))
+        triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
+        return triplets_to_remove
