@@ -40,7 +40,7 @@ Warning: Run under Python 3.X but could run with small modifs with Python 2.7X
 Installation:
 
 1) Make sure pip is installed (https://packaging.python.org/tutorials/installing-packages/)<br/>
-2) Then you can install FrenchLefffLemmatizer:
+2) Then you can install FrenchLefffLemmatizer:<br/>
 `> pip install git+https://github.com/ClaudeCoulombe/FrenchLefffLemmatizer.git`
 
 -----
