@@ -84,11 +84,11 @@ class FrenchLefffLemmatizer(object):
         self.LEFFF_TABLE = lefff_triplets_dict
 
     @staticmethod
-    def is_wordnet_api(pos):
+    def is_wordnet_pos(pos):
         return pos in ['a', 'n', 'r', 'v']
 
     @staticmethod
-    def is_lefff_api(pos):
+    def is_lefff_pos(pos):
         return pos in ['adj', 'adv', 'nc', 'np', 'ver', 'auxAvoir', 'auxEtre']
 
     def draw_random_sample(self, sample_size):
@@ -107,33 +107,33 @@ class FrenchLefffLemmatizer(object):
         raw_word = word
         if not (pos == "np"):
             word = word.lower()
-        if word in self.LEFFF_TABLE.keys():
+        if word in self.LEFFF_TABLE:
             triplets_dict = self.LEFFF_TABLE[word]
             if self.TRACE:
                 print("TRACE: ", triplets_dict)
         else:
             triplets_dict = []
         pos_couples_list = []
-        if self.is_wordnet_api(pos):
-            if not triplets_dict == []:
+        if self.is_wordnet_pos(pos):
+            if triplets_dict:
                 translated_pos_tag = self.WORDNET_LEFFF_DIC[pos]
-                if translated_pos_tag in triplets_dict.keys():
+                if translated_pos_tag in triplets_dict:
                     if self.TRACE:
                         print("TRACE: ", pos, translated_pos_tag)
                     return triplets_dict[translated_pos_tag]
         else:
-            if not triplets_dict == []:
-                if pos in triplets_dict.keys():
+            if triplets_dict:
+                if pos in triplets_dict:
                     return [(triplets_dict[pos], pos)]
-                elif pos == 'all':
-                    for key in triplets_dict.keys():
+                elif pos == 'all' or pos not in triplets_dict:
+                    for key in triplets_dict:
                         pos_couple = (triplets_dict[key], key)
                         pos_couples_list.append(pos_couple)
                     if raw_word[0].isupper():
                         pos_couples_list.append((raw_word, 'np'))
         if not pos_couples_list:
-            if self.is_wordnet_api(pos):
+            if self.is_wordnet_pos(pos):
                 return raw_word
             elif raw_word[0].isupper():
-                return [(raw_word, 'np')]
+                return raw_word, 'np'
         return pos_couples_list
