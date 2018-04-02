@@ -40,10 +40,10 @@ class FrenchLefffLemmatizer(object):
     _POS_NP = 'np'
 
     def __init__(self, lefff_file_path=None, lefff_additional_file_path=None, *,
-                 with_additional=None, load_only_pos=None):
+                 with_additional_file=None, load_only_pos=None):
         """
-        :param with_additional: Allows to load LEFFF without the additional file. (Default: True)
-        :type with_additional: bool
+        :param with_additional_file: Allows to load LEFFF without the additional file. (Default: True)
+        :type with_additional_file: bool
         :param load_only_pos: Allows to load LEFFF with only some pos tags. (Default: all)
         :type load_only_pos: list
         """
@@ -52,7 +52,7 @@ class FrenchLefffLemmatizer(object):
             lefff_file_path = data_file_path + "/data/lefff-3.4.mlex"
         if lefff_additional_file_path is None:
             lefff_additional_file_path = data_file_path + "/data/lefff-3.4-addition.mlex"
-        with_additional = True if with_additional is None else with_additional
+        with_additional_file = True if with_additional_file is None else with_additional_file
         load_only_pos = self._LEFFF_POS if load_only_pos is None else self.filter_lefff_pos(load_only_pos)
 
         self.LEFFF_FILE_STORAGE = lefff_file_path
@@ -68,7 +68,7 @@ class FrenchLefffLemmatizer(object):
                     set_pos_triplets.add(pos_triplet)
         set_pos_triplets_to_remove = set()
         set_pos_triplets_to_add = set()
-        if with_additional:
+        if with_additional_file:
             with open(self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE, encoding='utf-8') as lefff_additional_data_file:
                 for line_add in lefff_additional_data_file:
                     line_add_parts = line_add[:-1].split('\t')
