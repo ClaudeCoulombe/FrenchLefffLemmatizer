@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
+from french_lefff_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
 
 
 class TestFrenchLefffLemmatizer(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestFrenchLefffLemmatizer(unittest.TestCase):
 
     def test_french_lefff_lemmatizer_when_lefff_files_are_empty_expect_empty_table(self):
         lemmatizer = FrenchLefffLemmatizer(lefff_file_path=self.path_file, lefff_additional_file_path=self.path_file)
-        self.assertEqual(2,  # Corresponds to the triplets to add
+        self.assertEqual(2,  # Corresponds to the triplets to add (errors)
                          len(lemmatizer.LEFFF_TABLE))
 
     def test_french_lefff_lemmatizer_when_load_only_lefff_additional(self):
@@ -90,17 +90,35 @@ class TestLemmatize(unittest.TestCase):
         self.assertEqual(expected_result,
                          set(self.lemmatizer.lemmatize('voitures', pos='x')))
 
+    def test_lemmatize_when_pos_all_expect_all_lemmas(self):
+        expected_result = {('avion', 'nc'), ('avoir', 'auxAvoir'), ('avoir', 'v')}
+        self.assertEqual(expected_result,
+                         set(self.lemmatizer.lemmatize('avions', pos='all')))
 
-class TestUpdateLefffLexicon(unittest.TestCase):
+
+class FilterLefffPos(unittest.TestCase):
+    _LEFFF_POS = ['adj', 'adv', 'nc', 'np', 'v', 'auxAvoir', 'auxEtre']
+
     def setUp(self):
-        self.path_file = 'path_to_file'
-        with open(self.path_file, "w") as f:
-            f.write("avoir	v	avoir")  # triplet with no old lemma
+        # To make the test faster, we load an empty file.
+        self.lemmatizer = FrenchLefffLemmatizer(open('file.txt', 'w').close())
 
     def tearDown(self):
-        if os.path.exists(self.path_file):
-            os.remove(self.path_file)
+        if os.path.exists('file.txt'):
+            os.remove('file.txt')
 
-    def test_update_lefff_lexicon_when_no_old_lemma_expect_exception(self):
-        with self.assertRaises(IndexError):
-            FrenchLefffLemmatizer(lefff_additional_file_path=self.path_file).update_lefff_lexicon()
+    def test_filter_lefff_pos_when_list_expect_filtered_list(self):
+        self.assertListEqual(['adj', 'v', 'auxAvoir'],
+                             self.lemmatizer.filter_lefff_pos(['adj', 'v', 'auxAvoir', 'wrong_pos']))
+
+    def test_filter_lefff_pos_when_only_wrong_pos_expect_all_lefff_pos(self):
+        self.assertListEqual(self._LEFFF_POS,
+                             self.lemmatizer.filter_lefff_pos(['wrong_pos']))
+
+    def test_filter_lefff_pos_when_not_list_expect_all_lefff_pos(self):
+        self.assertListEqual(self._LEFFF_POS,
+                             self.lemmatizer.filter_lefff_pos('nc'))
+
+    def test_filter_lefff_pos_when_list_correct_pos_expect_correct_pos(self):
+        self.assertListEqual(['nc'],
+                             self.lemmatizer.filter_lefff_pos(['nc']))
