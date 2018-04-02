@@ -62,6 +62,10 @@ class FrenchLefffLemmatizer(object):
         self.LEFFF_ADDITIONAL_DATA_FILE = lefff_additional_file_path
 
         self.LEFFF_TABLE = dict()
+        # {
+        #  "chaises": {"n": "chaise"},
+        #  "courtes": {"a": "court"}
+        # }
         with open(self.LEFFF_DATA_FILE, encoding='utf-8') as lefff_data_file:
             for a_line in lefff_data_file:
                 line_parts = a_line[:-1].split('\t')
@@ -93,20 +97,20 @@ class FrenchLefffLemmatizer(object):
     def lemmatize(self, word, *, pos=PartOfSpeech.NOUN.value):
         raw_word = word
         word = word.lower() if not (pos == FrenchLefffLemmatizer._POS_NP) else word
-        triplets_list = self.LEFFF_TABLE[word] if word in self.LEFFF_TABLE else list()
+        triplets_list = self.LEFFF_TABLE[word] if word in self.LEFFF_TABLE else list()  # a dict
         pos_couples_list = list()
 
         if self.is_wordnet_pos(pos):
             for triplet in triplets_list:
-                if triplet[WordCharacteristic.POS.value] in \
+                if triplet in \
                         FrenchLefffLemmatizer._LEFFF_WORDNET_POS_CORRESPONDENCES:
                     translated_pos_tag = \
-                        FrenchLefffLemmatizer._LEFFF_WORDNET_POS_CORRESPONDENCES[triplet[WordCharacteristic.POS.value]]
+                        FrenchLefffLemmatizer._LEFFF_WORDNET_POS_CORRESPONDENCES[triplet]
                     if translated_pos_tag == pos:
-                        return triplet[WordCharacteristic.LEMMA.value]
+                        return triplets_list[triplet]
         else:
             for triplet in triplets_list:
-                pos_couple = (triplet[WordCharacteristic.LEMMA.value], triplet[WordCharacteristic.POS.value])
+                pos_couple = (triplets_list[triplet], triplet)
                 if pos_couple not in pos_couples_list:
                     pos_couples_list.append(pos_couple)
         if not pos_couples_list:  # empty list
@@ -119,9 +123,10 @@ class FrenchLefffLemmatizer(object):
     def add_triplet_to_dict(self, a_triplet):
         if not a_triplet[WordCharacteristic.INFLECTED_FORM.value] in self.LEFFF_TABLE \
                 and a_triplet not in self.triplets_to_remove():
-            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]] = {a_triplet}
+            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]] = {a_triplet[WordCharacteristic.POS.value]:
+                                                                                    a_triplet[WordCharacteristic.LEMMA.value]}
         else:
-            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]].add(a_triplet)
+            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]][a_triplet[WordCharacteristic.POS.value]] = a_triplet[WordCharacteristic.LEMMA.value]
 
     def update_lefff_lexicon(self):
         """
@@ -149,15 +154,15 @@ class FrenchLefffLemmatizer(object):
     @staticmethod
     def triplets_to_remove():
         # Errors found in lefff-3.4.mlex : triplets to remove
-        return [
+        return {
             ('chiens', 'nc', 'chiens'),
             ('traductrice', 'nc', 'traductrice')
-        ]
+        }
 
     @staticmethod
     def triplet_to_add():
         # Errors found in lefff-3.4.mlex : triplets to add
-        return [
+        return {
             ('résidente', 'nc', 'résident'),
             ('résidentes', 'nc', 'résident')
-        ]
+        }
