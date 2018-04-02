@@ -52,7 +52,6 @@ class FrenchLefffLemmatizer(object):
     def __init__(self, lefff_file_path=None, lefff_additional_file_path=None):
         # TODO: make loading of additional file optional
         # TODO: allow to load lefff with only chosen pos tag
-        # Build paths inside the project like this: os.path.join(base_dir, ...)
         base_dir = os.path.dirname(os.path.dirname(__file__))
         if lefff_file_path is None:
             lefff_file_path = os.path.join(base_dir, "french_lefff_lemmatizer", "data", "lefff-3.4.mlex")
@@ -120,8 +119,7 @@ class FrenchLefffLemmatizer(object):
     def add_triplet_to_dict(self, a_triplet):
         if not a_triplet[WordCharacteristic.INFLECTED_FORM.value] in self.LEFFF_TABLE \
                 and a_triplet not in self.triplets_to_remove():
-            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]] = set()
-            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]].add(a_triplet)
+            self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]] = {a_triplet}
         else:
             self.LEFFF_TABLE[a_triplet[WordCharacteristic.INFLECTED_FORM.value]].add(a_triplet)
 
@@ -130,23 +128,23 @@ class FrenchLefffLemmatizer(object):
         Updates lexicon according to additional data.
         :return: Updated triplets dictionary.
         """
-        for a_line in open(self.LEFFF_ADDITIONAL_DATA_FILE, encoding='utf-8'):
-            line_parts = a_line[:-1].split('\t')
+        with open(self.LEFFF_ADDITIONAL_DATA_FILE, encoding='utf-8') as file:
+            for a_line in file:
+                line_parts = a_line[:-1].split('\t')
+                try:
+                    old_pos_triplet = (line_parts[WordCharacteristic.INFLECTED_FORM.value],
+                                       line_parts[WordCharacteristic.POS.value],
+                                       line_parts[WordCharacteristic.OLD_LEMMA.value])
+                    if old_pos_triplet[WordCharacteristic.INFLECTED_FORM.value] in self.LEFFF_TABLE and \
+                       old_pos_triplet in self.LEFFF_TABLE[old_pos_triplet[WordCharacteristic.INFLECTED_FORM.value]]:
+                        self.LEFFF_TABLE[old_pos_triplet[WordCharacteristic.INFLECTED_FORM.value]].remove(old_pos_triplet)
+                except IndexError as err:
+                    raise IndexError("Error! %s\nLength %s\n%s" % (err, len(line_parts), line_parts))
 
-            try:
-                old_pos_triplet = (line_parts[WordCharacteristic.INFLECTED_FORM.value],
+                new_pos_triplet = (line_parts[WordCharacteristic.INFLECTED_FORM.value],
                                    line_parts[WordCharacteristic.POS.value],
-                                   line_parts[WordCharacteristic.OLD_LEMMA.value])
-                if old_pos_triplet[WordCharacteristic.INFLECTED_FORM.value] in self.LEFFF_TABLE and \
-                   old_pos_triplet in self.LEFFF_TABLE[old_pos_triplet[WordCharacteristic.INFLECTED_FORM.value]]:
-                    self.LEFFF_TABLE[old_pos_triplet[WordCharacteristic.INFLECTED_FORM.value]].remove(old_pos_triplet)
-            except IndexError as err:
-                raise IndexError("Error! %s\nLength %s\n%s" % (err, len(line_parts), line_parts))
-
-            new_pos_triplet = (line_parts[WordCharacteristic.INFLECTED_FORM.value],
-                               line_parts[WordCharacteristic.POS.value],
-                               line_parts[WordCharacteristic.LEMMA.value])
-            self.add_triplet_to_dict(new_pos_triplet)
+                                   line_parts[WordCharacteristic.LEMMA.value])
+                self.add_triplet_to_dict(new_pos_triplet)
 
     @staticmethod
     def triplets_to_remove():
