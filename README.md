@@ -39,19 +39,16 @@ Warning: Run under Python 3.X but could run with small modifs with Python 2.7X
 -----
 Installation:
 
-1) Download the .zip file and uncompress it
-2) Rename the file FrenchLemmatizer-master to FrenchLemmatizer
-3) Using the console:<br/>
-`> cd FrenchLemmatizer`<br/>
-4) You should install pip (https://packaging.python.org/tutorials/installing-packages/)<br/>
-`> pip install . `
+1) Make sure pip is installed (https://packaging.python.org/tutorials/installing-packages/)<br/>
+2) Then you can install FrenchLefffLemmatizer:<br/>
+`> pip install git+https://github.com/ClaudeCoulombe/FrenchLefffLemmatizer.git`
 
 -----
 
 Small examples:
 
 ``` Python
-from FrenchLefffLemmatizer.FrenchLefffLemmatizer import FrenchLefffLemmatizer
+from french_lefff_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
 french_lemmatizer = FrenchLefffLemmatizer()
 print(french_lemmatizer.lemmatize('avions'))
 avion
@@ -67,5 +64,16 @@ french_lemmatizer.lemmatize('la','all')
 [('la', 'nc'), ('le', 'det'), ('le', 'cla')]
 ```
 
+Additional examples:
 
+``` Python
+from french_lefff_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
+french_lemmatizer = FrenchLefffLemmatizer(with_additional_file=False, load_only_pos=['nc', 'adj'])
+print(french_lemmatizer.lemmatize('avions'))
+avion
+french_lemmatizer.lemmatize('avions','n')
+avion
+french_lemmatizer.lemmatize('avions','all')
+[('avion', 'nc')]
+```
 

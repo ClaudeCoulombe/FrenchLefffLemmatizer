@@ -1,14 +1,16 @@
 from setuptools import setup
 
 setup(name='FrenchLefffLemmatizer',
-      version='0.1',
+      version='0.2',
       description='French Lemmatizer based on LEFFF a large-scale morphological and syntactic lexicon for French',
+      keywords='french lefff lemmatizer lexicon',
       url='https://github.com/ClaudeCoulombe/FrenchLefffLemmatizer',
       author='Claude Coulombe',
       author_email='claude.coulombe@gmail.com',
       license='Apache 2',
-      packages=['FrenchLefffLemmatizer'],
+      packages=['french_lefff_lemmatizer'],
       package_data={
-      'FrenchLefffLemmatizer': ['lefff-3.4.mlex','lefff-3.4-addition.mlex','LICENCE','lefff-tagset-0.1.2.pdf']},
+            'french_lefff_lemmatizer': ['data/lefff-3.4.mlex', 'data/lefff-3.4-addition.mlex']
+      },
+      include_package_data=True,
       zip_safe=False)
-
