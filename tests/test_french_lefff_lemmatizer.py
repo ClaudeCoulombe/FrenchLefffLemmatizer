@@ -21,15 +21,43 @@ class TestFrenchLefffLemmatizer(unittest.TestCase):
 
     def test_french_lefff_lemmatizer_when_load_only_lefff_additional(self):
         lemmatizer = FrenchLefffLemmatizer(lefff_file_path=self.path_file)
-        self.assertEqual(56843, len(lemmatizer.LEFFF_TABLE))
+        self.assertEqual(56843, len(lemmatizer.LEFFF_TABLE))  # 56841 + 2 "errors" added
 
     def test_french_lefff_lemmatizer_when_lefff_additional_file_path_is_not_none_and_empty_expect_only_lefff_file(self):
         lemmatizer = FrenchLefffLemmatizer(lefff_additional_file_path=self.path_file)
-        self.assertEqual(455787, len(lemmatizer.LEFFF_TABLE))
+        self.assertEqual(455787, len(lemmatizer.LEFFF_TABLE))  # 455785 + 2
 
     def test_french_lefff_lemmatizer_lexicon_data_length(self):
         lemmatizer = FrenchLefffLemmatizer()
         self.assertEqual(455789, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_with_additional_file_is_true(self):
+        lemmatizer = FrenchLefffLemmatizer(with_additional_file=True)
+        self.assertEqual(455789, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_with_additional_file_is_false(self):
+        lemmatizer = FrenchLefffLemmatizer(with_additional_file=False)
+        self.assertEqual(455787, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_when_load_only_pos_is_empty_list_expect_all(self):
+        lemmatizer = FrenchLefffLemmatizer(load_only_pos=[])
+        self.assertEqual(455789, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_when_load_only_pos_is_n_expect_only_nouns(self):
+        lemmatizer = FrenchLefffLemmatizer(load_only_pos=['n'])
+        self.assertEqual(86235, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_when_load_only_pos_is_a_expect_only_adjectives(self):
+        lemmatizer = FrenchLefffLemmatizer(load_only_pos=['a'])
+        self.assertEqual(56823, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_when_load_only_pos_is_r_expect_only_adverbs(self):
+        lemmatizer = FrenchLefffLemmatizer(load_only_pos=['r'])
+        self.assertEqual(3731, len(lemmatizer.LEFFF_TABLE))
+
+    def test_french_lefff_lemmatizer_when_load_only_pos_is_v_expect_only_verbs(self):
+        lemmatizer = FrenchLefffLemmatizer(load_only_pos=['v'])
+        self.assertEqual(301208, len(lemmatizer.LEFFF_TABLE))
 
 
 class TestIsWordnetApi(unittest.TestCase):
@@ -97,7 +125,6 @@ class TestLemmatize(unittest.TestCase):
 
 
 class FilterLefffPos(unittest.TestCase):
-    _LEFFF_POS = ['adj', 'adv', 'nc', 'np', 'v', 'auxAvoir', 'auxEtre']
 
     def setUp(self):
         # To make the test faster, we load an empty file.
@@ -108,17 +135,13 @@ class FilterLefffPos(unittest.TestCase):
             os.remove('file.txt')
 
     def test_filter_lefff_pos_when_list_expect_filtered_list(self):
-        self.assertListEqual(['adj', 'v', 'auxAvoir'],
-                             self.lemmatizer.filter_lefff_pos(['adj', 'v', 'auxAvoir', 'wrong_pos']))
+        self.assertSetEqual({'adj', 'v'}, self.lemmatizer.filter_lefff_pos(['a', 'v', 'auxAvoir', 'wrong_pos']))
 
-    def test_filter_lefff_pos_when_only_wrong_pos_expect_all_lefff_pos(self):
-        self.assertListEqual(self._LEFFF_POS,
-                             self.lemmatizer.filter_lefff_pos(['wrong_pos']))
-
-    def test_filter_lefff_pos_when_not_list_expect_all_lefff_pos(self):
-        self.assertListEqual(self._LEFFF_POS,
-                             self.lemmatizer.filter_lefff_pos('nc'))
+    def test_filter_lefff_pos_when_only_wrong_pos_expect_none(self):
+        self.assertIsNone(self.lemmatizer.filter_lefff_pos(['wrong_pos']))
 
     def test_filter_lefff_pos_when_list_correct_pos_expect_correct_pos(self):
-        self.assertListEqual(['nc'],
-                             self.lemmatizer.filter_lefff_pos(['nc']))
+        self.assertSetEqual({'nc'}, self.lemmatizer.filter_lefff_pos(['n']))
+
+    def test_filter_lefff_pos_when_not_list_expect_pos_tags(self):
+        self.assertSetEqual({'nc', 'adj'}, self.lemmatizer.filter_lefff_pos('na'))
