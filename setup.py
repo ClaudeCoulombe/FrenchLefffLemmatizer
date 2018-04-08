@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='FrenchLefffLemmatizer',
-      version='0.2',
+      version='0.3',
       description='French Lemmatizer based on LEFFF a large-scale morphological and syntactic lexicon for French',
       keywords='french lefff lemmatizer lexicon',
       url='https://github.com/ClaudeCoulombe/FrenchLefffLemmatizer',
