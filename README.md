@@ -10,7 +10,8 @@ Sagot (2010). The Lefff, a freely available and large-coverage morphological and
 In Proceedings of the 7th international conference on Language Resources and Evaluation (LREC 2010), Istanbul, Turkey.
 Retrieved from [Benoît Sagot Webpage about LEFFF](http://alpage.inria.fr/~sagot/lefff-en.html)
 
-More precisely, we use the morphological lexicon only: .mlex file which has a simple format in CSV (4 fields separated by `\t`)
+In this project, we use the morphological lexicon only: 
+.mlex file which has a simple format in CSV (4 fields separated by `\t`)
 
 [LEFFF download hyperlink](https://gforge.inria.fr/frs/download.php/file/34601/lefff-3.4.mlex.tgz)
 
@@ -26,17 +27,15 @@ You may obtain a copy of the License at [Apache 2.0 License](http://www.apache.o
 
 > **Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.**
 
-
-Warning: Run under Python 3.X but could run with small modifs with Python 2.7X
------
-
 ### Installation
 
 1. Make sure pip is installed (https://packaging.python.org/tutorials/installing-packages/)<br/>
 2. Then you can install FrenchLefffLemmatizer:<br/>
 `> pip install git+https://github.com/ClaudeCoulombe/FrenchLefffLemmatizer.git`
 
-### Examples
+> ***Warning: Run under Python 3.X but could run with small modifs with Python 2.7X***
+
+### Usage
 
 Import
 
@@ -44,7 +43,12 @@ Import
 >>> from french_lefff_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
 ```
 
-Instantiation
+Constructor parameters:
+
+* **with_additional_file**: Allows to load LEFFF without the additional file. (Default: True)
+* **load_only_pos**: Allows to load LEFFF with only some pos tags, WordNet pos tags [a, r, n, v]. (Default: all)
+
+Example with default constructor
 ``` Python
 >>> lemmatizer = FrenchLefffLemmatizer()
 >>> lemmatizer.lemmatize('avions')
@@ -61,9 +65,9 @@ avoir
 [('la', 'nc'), ('le', 'det'), ('le', 'cla')]
 ```
 
-Additional example
+Additional example with parameters
 ``` Python
->>> lemmatizer = FrenchLefffLemmatizer(with_additional_file=False, load_only_pos=['nc', 'adj'])
+>>> lemmatizer = FrenchLefffLemmatizer(with_additional_file=False, load_only_pos=['n', 'a'])
 >>> lemmatizer.lemmatize('avions')
 avion
 >>> lemmatizer.lemmatize('avions','n')
