@@ -35,8 +35,6 @@ class FrenchLefffLemmatizer(object):
         'v': 'v'
     }
 
-    _LEFFF_POS = ['adj', 'adv', 'nc', 'np', 'v', 'auxAvoir', 'auxEtre']
-
     _POS_NP = 'np'
 
     def __init__(self, lefff_file_path=None, lefff_additional_file_path=None, *,
@@ -44,7 +42,7 @@ class FrenchLefffLemmatizer(object):
         """
         :param with_additional_file: Allows to load LEFFF without the additional file. (Default: True)
         :type with_additional_file: bool
-        :param load_only_pos: Allows to load LEFFF with only some pos tags. (Default: all)
+        :param load_only_pos: Allows to load LEFFF with only some pos tags: WordNet pos tags [a, r, n, v]. (Default: all)
         :type load_only_pos: list
         """
         data_file_path = os.path.dirname(os.path.realpath(__file__))
@@ -53,7 +51,7 @@ class FrenchLefffLemmatizer(object):
         if lefff_additional_file_path is None:
             lefff_additional_file_path = data_file_path + "/data/lefff-3.4-addition.mlex"
         with_additional_file = True if with_additional_file is None else with_additional_file
-        load_only_pos = self._LEFFF_POS if load_only_pos is None else self.filter_lefff_pos(load_only_pos)
+        load_only_pos = self.filter_lefff_pos(load_only_pos) if load_only_pos is not None else None
 
         self.LEFFF_FILE_STORAGE = lefff_file_path
         self.LEFFF_ADDITIONAL_DATA_FILE_STORAGE = lefff_additional_file_path
@@ -99,7 +97,7 @@ class FrenchLefffLemmatizer(object):
         for a_triplet in set_pos_triplets:
             if self.TRACE:
                 print(a_triplet)
-            if a_triplet[self._POS] in load_only_pos:
+            if not load_only_pos or a_triplet[self._POS] in load_only_pos:
                 if not a_triplet[self._INFLECTED_FORM] in lefff_triplets_dict:
                     lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]] = dict()
                     lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
@@ -114,14 +112,16 @@ class FrenchLefffLemmatizer(object):
     def is_wordnet_pos(pos):
         return pos in ['a', 'n', 'r', 'v']
 
-    def is_lefff_pos(self, pos):
-        return pos in self._LEFFF_POS
+    @staticmethod
+    def is_lefff_pos(pos):
+        return pos in ['adj', 'adv', 'nc', 'np', 'v', 'auxAvoir', 'auxEtre']
 
     def filter_lefff_pos(self, list_pos):
         """
         To prevent from giving incorrect POS tags.
+        :return Set of LEFFF pos tags or None
         """
-        return [pos for pos in list_pos if self.is_lefff_pos(pos)] or self._LEFFF_POS
+        return {self._WORDNET_LEFFF_DIC[pos] for pos in list_pos if self.is_wordnet_pos(pos)} or None
 
     def draw_random_sample(self, sample_size):
         leff_list = list(self.LEFFF_TABLE)
