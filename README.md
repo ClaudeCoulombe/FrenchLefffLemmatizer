@@ -2,7 +2,7 @@
 
 ### Introduction
 
-A French Lemmatizer in Python based on the LEFFF (Lexique des Formes Fléchies du Français / Lexicon of French inflected forms) is a large-scale morphological and syntactic lexicon for French.
+A French Lemmatizer in Python based on the LEFFF (Lexique des Formes Fléchies du Français / Lexicon of French inflected forms) is a large-scale morphological and syntactic lexicon for French. In French, the lemmatization of a verb returns this verb to the infinitive and for the other words, the lemmatization returns this word to the masculine singular.
 
 ### Main reference
 
