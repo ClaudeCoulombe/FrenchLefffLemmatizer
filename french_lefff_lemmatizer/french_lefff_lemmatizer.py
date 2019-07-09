@@ -167,6 +167,11 @@ class FrenchLefffLemmatizer(object):
             if self.is_wordnet_pos(pos):
                 return raw_word
             elif raw_word[0].isupper():
+                if pos == 'all':
+                    return [(raw_word, self._POS_NP)]
+                else:
+                    return raw_word, self._POS_NP
+
                 return raw_word, self._POS_NP
         return pos_couples_list
 
