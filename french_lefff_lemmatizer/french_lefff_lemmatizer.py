@@ -185,5 +185,6 @@ class FrenchLefffLemmatizer(object):
     @staticmethod
     def triplets_to_remove(triplets_to_remove):
         triplets_to_remove.add(('chiens', 'nc', 'chiens'))
+        triplets_to_remove.add(('saisie', 'nc', 'saisi'))        
         triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
         return triplets_to_remove
