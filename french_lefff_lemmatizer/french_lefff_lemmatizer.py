@@ -61,9 +61,13 @@ class FrenchLefffLemmatizer(object):
         with open(self.LEFFF_FILE_STORAGE, encoding='utf-8') as lefff_file:
             for a_line in lefff_file:
                 line_parts = a_line[:-1].split('\t')
-                pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS], line_parts[self._LEMMA])
+                pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS]+"_1", line_parts[self._LEMMA])
                 if pos_triplet not in set_pos_triplets:
                     set_pos_triplets.add(pos_triplet)
+                else:
+                    new_pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS]+"_2", line_parts[self._LEMMA])
+                    if new_pos_triplet not in set_pos_triplets:
+                        set_pos_triplets.add(new_pos_triplet)
         set_pos_triplets_to_remove = set()
         set_pos_triplets_to_add = set()
         if with_additional_file:
@@ -135,6 +139,47 @@ class FrenchLefffLemmatizer(object):
             if index > end:
                 break
 
+    # Christopher P. Matthews
+    # christophermatthews1985@gmail.com
+    # Sacramento, CA, USA
+    def edit_distance(s, t):
+        ''' Also known as Levenshtein distance
+            From Wikipedia article; Iterative with two matrix rows '''
+        if s == t: return 0
+        elif len(s) == 0: return len(t)
+        elif len(t) == 0: return len(s)
+        v0 = [None] * (len(t) + 1)
+        v1 = [None] * (len(t) + 1)
+        for i in range(len(v0)):
+            v0[i] = i
+        for i in range(len(s)):
+            v1[0] = i + 1
+            for j in range(len(t)):
+                cost = 0 if s[i] == t[j] else 1
+                v1[j + 1] = min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost)
+            for j in range(len(v0)):
+                v0[j] = v1[j]
+        return v1[len(t)]
+
+    def get_best_triplet(triplets_dict_1,triplets_dict_2):
+        edit_distance_1 = edit_distance(triplets_dict_1[self._INFLECTED_FORM],triplets_dict_1[self._LEMMA])
+        edit_distance_2 = edit_distance(triplets_dict_2[self._INFLECTED_FORM],triplets_dict_2[self._LEMMA])
+        if (triplets_dict_1[self._INFLECTED_FORM][-1] == 's'):
+            if edit_distance_1 == 1:
+                return triplets_dict_1
+            elif edit_distance_2 == 1:
+                return triplets_dict_2
+            else:
+                if edit_distance_1 > edit_distance_2:
+                    return triplets_dict_1
+                else:
+                    return triplets_dict_2            
+        else:
+            if edit_distance_1 < edit_distance_2:
+                return triplets_dict_1
+            else:
+                return triplets_dict_2
+
     def lemmatize(self, word, pos="n"):
         raw_word = word
         if not (pos == self._POS_NP):
@@ -179,12 +224,12 @@ class FrenchLefffLemmatizer(object):
     def triplets_to_add(triplets_to_add):
         # Errors found in lefff-3.4.mlex :
         triplets_to_add.add(('résidente', 'nc', 'résident'))
-        triplets_to_add.add(('résidentes', 'nc', 'résident'))
+        triplets_to_add.add(('résidentes', 'nc', 'résidente'))
         return triplets_to_add
 
     @staticmethod
     def triplets_to_remove(triplets_to_remove):
-        triplets_to_remove.add(('chiens', 'nc', 'chiens'))
-        triplets_to_remove.add(('saisie', 'nc', 'saisi'))        
-        triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
+        triplets_to_remove.add(('chiens', 'nc_1', 'chiens'))
+        triplets_to_remove.add(('saisie', 'nc_1', 'saisi'))        
+        # triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
         return triplets_to_remove
