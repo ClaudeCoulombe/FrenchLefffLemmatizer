@@ -61,13 +61,10 @@ class FrenchLefffLemmatizer(object):
         with open(self.LEFFF_FILE_STORAGE, encoding='utf-8') as lefff_file:
             for a_line in lefff_file:
                 line_parts = a_line[:-1].split('\t')
-                pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS]+"_1", line_parts[self._LEMMA])
+                pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS], line_parts[self._LEMMA])
+                # print('pos_triplet',pos_triplet)
                 if pos_triplet not in set_pos_triplets:
                     set_pos_triplets.add(pos_triplet)
-                else:
-                    new_pos_triplet = (line_parts[self._INFLECTED_FORM], line_parts[self._POS]+"_2", line_parts[self._LEMMA])
-                    if new_pos_triplet not in set_pos_triplets:
-                        set_pos_triplets.add(new_pos_triplet)
         set_pos_triplets_to_remove = set()
         set_pos_triplets_to_add = set()
         if with_additional_file:
@@ -106,7 +103,13 @@ class FrenchLefffLemmatizer(object):
                     lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]] = dict()
                     lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
                 else:
-                    lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
+                    if a_triplet[self._POS] == 'nc':
+                        if not "nc" in lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]].keys():
+                            lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
+                        else:
+                            lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]+"_2"] = a_triplet[self._LEMMA]
+                    else:
+                        lefff_triplets_dict[a_triplet[self._INFLECTED_FORM]][a_triplet[self._POS]] = a_triplet[self._LEMMA]
                     # release the temporary set_POS_triples data structure
         # TODO: in order to save memory, combine set_POS_triples and lefff_triplets_dict 
         del set_pos_triplets
@@ -131,6 +134,7 @@ class FrenchLefffLemmatizer(object):
         leff_list = list(self.LEFFF_TABLE)
         return [self.LEFFF_TABLE[leff_list[i]] for i in random.sample(range(len(leff_list)), sample_size)]
 
+    @staticmethod
     def show_lefff_dict(self, end):
         index = 0
         for element in self.LEFFF_TABLE:
@@ -142,6 +146,7 @@ class FrenchLefffLemmatizer(object):
     # Christopher P. Matthews
     # christophermatthews1985@gmail.com
     # Sacramento, CA, USA
+    @staticmethod
     def edit_distance(s, t):
         ''' Also known as Levenshtein distance
             From Wikipedia article; Iterative with two matrix rows '''
@@ -161,53 +166,82 @@ class FrenchLefffLemmatizer(object):
                 v0[j] = v1[j]
         return v1[len(t)]
 
-    def get_best_triplet(triplets_dict_1,triplets_dict_2):
-        edit_distance_1 = edit_distance(triplets_dict_1[self._INFLECTED_FORM],triplets_dict_1[self._LEMMA])
-        edit_distance_2 = edit_distance(triplets_dict_2[self._INFLECTED_FORM],triplets_dict_2[self._LEMMA])
-        if (triplets_dict_1[self._INFLECTED_FORM][-1] == 's'):
+    # Linguistic heuristic to chose one best nc lemma
+    def get_best_lemma(self, lemma_1,lemma_2,inflected_form):
+        edit_distance_1 = self.edit_distance(inflected_form,lemma_1)
+        edit_distance_2 = self.edit_distance(inflected_form,lemma_2)
+        if (inflected_form[-1] == 's'):
             if edit_distance_1 == 1:
-                return triplets_dict_1
+                return lemma_1
             elif edit_distance_2 == 1:
-                return triplets_dict_2
+                return lemma_2
             else:
                 if edit_distance_1 > edit_distance_2:
-                    return triplets_dict_1
+                    return lemma_1
                 else:
-                    return triplets_dict_2            
+                    return lemma_2            
         else:
             if edit_distance_1 < edit_distance_2:
-                return triplets_dict_1
+                return lemma_1
             else:
-                return triplets_dict_2
+                return lemma_2
+    
+    def standardize_lemma_pos_couples(self,lemmas_pos_couples):
+        standard_lemmas_pos_couples = []
+        for lemma,pos in lemmas_pos_couples:
+            if pos == 'nc_2':
+                pos = 'nc'
+            standard_lemmas_pos_couples.append((lemma,pos))
+        return standard_lemmas_pos_couples
 
     def lemmatize(self, word, pos="n"):
         raw_word = word
         if not (pos == self._POS_NP):
             word = word.lower()
         if word in self.LEFFF_TABLE:
-            triplets_dict = self.LEFFF_TABLE[word]
+            lemmas_pos_dict = self.LEFFF_TABLE[word]
             if self.TRACE:
-                print("TRACE: ", triplets_dict)
+                print("TRACE: ", lemmas_pos_dict)
         else:
-            triplets_dict = []
+            lemmas_pos_dict = {}
         pos_couples_list = []
         if self.is_wordnet_pos(pos):
-            if triplets_dict:
+            if lemmas_pos_dict:
                 translated_pos_tag = self._WORDNET_LEFFF_DIC[pos]
-                if translated_pos_tag in triplets_dict:
+                if translated_pos_tag in lemmas_pos_dict.keys():
                     if self.TRACE:
                         print("TRACE: ", pos, translated_pos_tag)
-                    return triplets_dict[translated_pos_tag]
+                    if translated_pos_tag == 'nc':
+                        if 'nc_2' in lemmas_pos_dict.keys():
+                            lemma_1 = lemmas_pos_dict['nc']
+                            lemma_2 = lemmas_pos_dict['nc_2']
+                            best_lemma = self.get_best_lemma(lemma_1,lemma_2,word)
+                            return best_lemma
+                        else:
+                            return lemmas_pos_dict[translated_pos_tag]
+                    else:
+                        return lemmas_pos_dict[translated_pos_tag]
         else:
-            if triplets_dict:
-                if pos in triplets_dict:
-                    return [(triplets_dict[pos], pos)]
-                elif pos == 'all' or pos not in triplets_dict:
-                    for key in triplets_dict:
-                        pos_couple = (triplets_dict[key], key)
+            if lemmas_pos_dict:
+                if pos in lemmas_pos_dict.keys():
+                    if pos == 'nc':
+                        if 'nc_2' in lemmas_pos_dict.keys():
+                            lemma_1 = lemmas_pos_dict['nc']
+                            lemma_2 = lemmas_pos_dict['nc_2']
+                            best_lemma = self.get_best_lemma(lemma_1,lemma_2,word)
+                        else:
+                            best_lemma = lemmas_pos_dict['nc']
+                    else:
+                        best_lemma = lemmas_pos_dict[pos]
+                    return [(best_lemma, pos)]
+                elif pos == 'all':
+                    for lemma in lemmas_pos_dict.keys():
+                        pos_couple = (lemmas_pos_dict[lemma], lemma)
                         pos_couples_list.append(pos_couple)
                     if raw_word[0].isupper():
                         pos_couples_list.append((raw_word, self._POS_NP))
+                elif pos not in lemmas_pos_dict.keys():
+                    return []                    
         if not pos_couples_list:
             if self.is_wordnet_pos(pos):
                 return raw_word
@@ -216,20 +250,21 @@ class FrenchLefffLemmatizer(object):
                     return [(raw_word, self._POS_NP)]
                 else:
                     return raw_word, self._POS_NP
-
                 return raw_word, self._POS_NP
-        return pos_couples_list
+        return self.standardize_lemma_pos_couples(pos_couples_list)
 
     @staticmethod
     def triplets_to_add(triplets_to_add):
         # Errors found in lefff-3.4.mlex :
         triplets_to_add.add(('résidente', 'nc', 'résident'))
+        triplets_to_add.add(('résidente', 'nc', 'résidente'))
+        triplets_to_add.add(('résidentes', 'nc', 'résident'))
         triplets_to_add.add(('résidentes', 'nc', 'résidente'))
         return triplets_to_add
 
     @staticmethod
     def triplets_to_remove(triplets_to_remove):
-        triplets_to_remove.add(('chiens', 'nc_1', 'chiens'))
-        triplets_to_remove.add(('saisie', 'nc_1', 'saisi'))        
-        # triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
+        triplets_to_remove.add(('chiens', 'nc', 'chiens'))
+        #triplets_to_remove.add(('saisie', 'nc', 'saisi'))        
+        #triplets_to_remove.add(('traductrice', 'nc', 'traductrice'))
         return triplets_to_remove
